@@ -1,0 +1,44 @@
+getdata;  ---"getdata_2D.c"
+	Init_para_SPH
+		box
+			boundaries
+				pos_veloc
+			fluid_particles
+				pos_veloc
+				pressure
+			p_boundaries
+		equation_of_state
+		updateNormals_2D
+
+ini_divide;  divide;  keep_list  ---"divide_2D.c"
+
+<LOOP START>
+step_Predictor   ---"step_predictor_corrector_2D.c"
+	ini_divide;  divide   ---"divide_2D.c"
+	ac   ---"ac_KC_2D.c"
+		celij   ---"celij_BC_Monaghan_2D.c"
+			kernel;   kernel_correction    ---"kernel_gaussian_2D.c"
+			viscosity   ---"viscosity_laminar_2D.c"
+			monaghanBC    ---"monaghanBC_2D.c"
+		self   ---"self_BC_Monaghan_2D.c"
+			kernel;   kernel_correction    ---"kernel_gaussian_2D.c"
+			viscosity   ---"viscosity_laminar_2D.c"
+			monaghanBC    ---"monaghanBC_2D.c"
+	correct    ---"correct_2D.c"
+	variable_time_step 
+	check_limits 
+	ini_divide;  divide
+	ac
+	correct
+	equation_of_state
+	ini_divide;   divide
+	
+
+densityFilter   ---"densityFilter_Shepard_2D.c"
+	ac_Shepard
+		pre_celij_Shepard 
+			kernel    ---"kernel_gaussian_2D.c"
+		pre_self_Shepard
+			kernel    ---"kernel_gaussian_2D.c"
+	equation_of_state   ---"divide_2D.c"
+<LOOP END>
